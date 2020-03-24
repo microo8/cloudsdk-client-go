@@ -3,29 +3,29 @@ package models
 /**
  * The task can have one of the following statuses
  */
-type TaskStatus int
+type TaskStatus string
 
 const (
 	/**
 	 * The task has been registered in the system, but has not yet been passed for processing.
 	 */
-	TaskStatusSubmitted TaskStatus = iota + 1
+	TaskStatusSubmitted TaskStatus = "submitted"
 
 	/**
 	 * The task has been placed in the processing queue and is waiting to be processed.
 	 */
-	TaskStatusQueued
+	TaskStatusQueued TaskStatus = "queued"
 
 	/**
 	 * The task is being processed.
 	 */
-	TaskStatusInProgress
+	TaskStatusInProgress TaskStatus = "inProgress"
 
 	/**
 	 * The task has been processed successfully. For a task with this status, the URL for
 	 * downloading the result of processing is available in the response.
 	 */
-	TaskStatusCompleted
+	TaskStatusCompleted TaskStatus = "completed"
 
 	/**
 	 * The task has not been processed because an error occurred. You can find the description of the
@@ -36,17 +36,17 @@ const (
 	 * failed, the fullest and most specific error description can be received by calling
 	 * {@link IOcrClient#getTaskStatusAsync(UUID)} for the first of those tasks.
 	 */
-	TaskStatusProcessingFailed
+	TaskStatusProcessingFailed TaskStatus = "processingFailed"
 
 	/**
 	 * The task has been deleted.
 	 */
-	TaskStatusDeleted
+	TaskStatusDeleted TaskStatus = "deleted"
 
 	/**
 	 * You do not have enough money on your account to process the task.
 	 */
-	TaskStatusNotEnoughCredits
+	TaskStatusNotEnoughCredits TaskStatus = "notEnoughCredits"
 )
 
 /**
@@ -580,50 +580,50 @@ const (
 /**
  * Specifies the type of the checkmark.
  */
-type CheckmarkType int
+type CheckmarkType string
 
 const (
 	/**
 	 * Checkmark against an empty background
 	 */
-	CheckmarkTypeEmpty CheckmarkType = iota + 1
+	CheckmarkTypeEmpty CheckmarkType = "empty"
 
 	/**
 	 * Checkmark in a circle
 	 */
-	CheckmarkTypeCircle
+	CheckmarkTypeCircle CheckmarkType = "circle"
 
 	/**
 	 * Checkmark in a square
 	 */
-	CheckmarkTypeSquare
+	CheckmarkTypeSquare CheckmarkType = "square"
 )
 
 /**
  * Specifies the country where the receipt was printed.
  * This parameter can contain several names of countries.
  */
-type ReceiptRecognizingCountry int
+type ReceiptRecognizingCountry string
 
 const (
-	ReceiptRecognizingCountryUk ReceiptRecognizingCountry = iota + 1
-	ReceiptRecognizingCountryUsa
-	ReceiptRecognizingCountryAustralia
-	ReceiptRecognizingCountryCanada
-	ReceiptRecognizingCountryJapan
-	ReceiptRecognizingCountryGermany
-	ReceiptRecognizingCountryItaly
-	ReceiptRecognizingCountryFrance
-	ReceiptRecognizingCountryBrazil
-	ReceiptRecognizingCountryRussia
-	ReceiptRecognizingCountryChina
-	ReceiptRecognizingCountryKorea
-	ReceiptRecognizingCountryNetherlands
-	ReceiptRecognizingCountrySpain
-	ReceiptRecognizingCountrySingapore
-	ReceiptRecognizingCountryTaiwan
-	ReceiptRecognizingCountryTurkey
-	ReceiptRecognizingCountryPoland
+	ReceiptRecognizingCountryUk          ReceiptRecognizingCountry = "uk"
+	ReceiptRecognizingCountryUsa         ReceiptRecognizingCountry = "usa"
+	ReceiptRecognizingCountryAustralia   ReceiptRecognizingCountry = "australia"
+	ReceiptRecognizingCountryCanada      ReceiptRecognizingCountry = "canada"
+	ReceiptRecognizingCountryJapan       ReceiptRecognizingCountry = "japan"
+	ReceiptRecognizingCountryGermany     ReceiptRecognizingCountry = "germany"
+	ReceiptRecognizingCountryItaly       ReceiptRecognizingCountry = "italy"
+	ReceiptRecognizingCountryFrance      ReceiptRecognizingCountry = "france"
+	ReceiptRecognizingCountryBrazil      ReceiptRecognizingCountry = "brazil"
+	ReceiptRecognizingCountryRussia      ReceiptRecognizingCountry = "russia"
+	ReceiptRecognizingCountryChina       ReceiptRecognizingCountry = "china"
+	ReceiptRecognizingCountryKorea       ReceiptRecognizingCountry = "korea"
+	ReceiptRecognizingCountryNetherlands ReceiptRecognizingCountry = "netherlands"
+	ReceiptRecognizingCountrySpain       ReceiptRecognizingCountry = "spain"
+	ReceiptRecognizingCountrySingapore   ReceiptRecognizingCountry = "singapore"
+	ReceiptRecognizingCountryTaiwan      ReceiptRecognizingCountry = "taiwan"
+	ReceiptRecognizingCountryTurkey      ReceiptRecognizingCountry = "turkey"
+	ReceiptRecognizingCountryPoland      ReceiptRecognizingCountry = "poland"
 )
 
 /**
@@ -632,10 +632,10 @@ const (
  * should be specified: on the original or on the corrected
  * image
  */
-type FieldRegionExportMode int
+type FieldRegionExportMode string
 
 const (
-	FieldRegionExportModeDoNotExport FieldRegionExportMode = iota + 1
-	FieldRegionExportModeForOriginalImage
-	FieldRegionExportModeForCorrectedImage
+	FieldRegionExportModeDoNotExport       FieldRegionExportMode = "doNotExport"
+	FieldRegionExportModeForOriginalImage  FieldRegionExportMode = "forOriginalImage"
+	FieldRegionExportModeForCorrectedImage FieldRegionExportMode = "forCorrectedImage"
 )

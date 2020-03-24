@@ -684,6 +684,24 @@ type CheckmarkFieldProcessingParams struct {
 	CorrectionAllowed bool
 }
 
+func (p *CheckmarkFieldProcessingParams) Params() map[string]string {
+	params := make(map[string]string)
+	if p.Region != "" {
+		params["region"] = p.Region
+	}
+	if p.CheckmarkType != "" {
+		params["checkmarkType"] = string(p.CheckmarkType)
+	}
+	params["correctionAllowed"] = strconv.FormatBool(p.CorrectionAllowed)
+	if p.Description != "" {
+		params["description"] = p.Description
+	}
+	if p.PdfPassword != "" {
+		params["pdfPassword"] = p.PdfPassword
+	}
+	return params
+}
+
 /**
  * Parameters for Fields Processing request
  */
@@ -707,6 +725,16 @@ type FieldsProcessingParams struct {
 	WriteRecognitionVariants bool
 }
 
+func (p *FieldsProcessingParams) Params() map[string]string {
+	params := make(map[string]string)
+	params["taskId"] = p.TaskId.String()
+	params["writeRecognitionVariants"] = strconv.FormatBool(p.WriteRecognitionVariants)
+	if p.Description != "" {
+		params["description"] = p.Description
+	}
+	return params
+}
+
 /**
  * Parameters for MRZ Processing request
  */
@@ -721,6 +749,10 @@ type MrzProcessingParams struct {
 	 * Optional. Contains the description of the processing task. Cannot contain more than 255 characters.
 	 */
 	Description string
+}
+
+func (p *MrzProcessingParams) Params() map[string]string {
+	return make(map[string]string)
 }
 
 /**
@@ -779,6 +811,33 @@ type ReceiptProccessingParams struct {
 	FieldRegionExportMode FieldRegionExportMode `json:"xml:fieldRegionExportMode"`
 }
 
+func (p *ReceiptProccessingParams) Params() map[string]string {
+	params := make(map[string]string)
+	if len(p.Countries) > 0 {
+		s := make([]string, len(p.Countries))
+		for i, v := range p.Countries {
+			s[i] = string(v)
+		}
+		params["country"] = strings.Join(s, ",")
+	}
+	if p.ImageSource != "" {
+		params["imageSource"] = string(p.ImageSource)
+	}
+	params["correctOrientation"] = strconv.FormatBool(p.CorrectOrientation)
+	params["correctSkew"] = strconv.FormatBool(p.CorrectSkew)
+	params["xml:writeExtendedCharacterInfo"] = strconv.FormatBool(p.WriteExtendedCharacterInfo)
+	if p.FieldRegionExportMode != "" {
+		params["xml:fieldRegionExportMode"] = string(p.FieldRegionExportMode)
+	}
+	if p.Description != "" {
+		params["description"] = p.Description
+	}
+	if p.PdfPassword != "" {
+		params["pdfPassword"] = p.PdfPassword
+	}
+	return params
+}
+
 /**
  * Parameters for Tasks Listing request
  */
@@ -798,4 +857,35 @@ type TasksListingParams struct {
 	 * Optional. Default is "false". Specifies if the tasks that have already been deleted must be excluded from the listing.
 	 */
 	ExcludeDeleted bool
+}
+
+func (p *TasksListingParams) Params() map[string]string {
+	params := make(map[string]string)
+	var zero time.Time
+	if p.FromDate != zero {
+		//yyyy-mm-ddThh:mm:ssZ
+		params["fromDate"] = p.FromDate.Format("2006-01-02T15:04:05-07")
+	}
+	if p.ToDate != zero {
+		//yyyy-mm-ddThh:mm:ssZ
+		params["toDate"] = p.ToDate.Format("2006-01-02T15:04:05-07")
+	}
+	params["excludeDeleted"] = strconv.FormatBool(p.ExcludeDeleted)
+	return params
+}
+
+/**
+ * Parameters for Task Deletion request
+ */
+type TaskDeletionParams struct {
+	/**
+	 * Required. Specifies the identifier of the task. If the task with the specified identifier does not exist, an error is returned.
+	 */
+	TaskId uuid.UUID
+}
+
+func (p *TaskDeletionParams) Params() map[string]string {
+	params := make(map[string]string)
+	params["taskId"] = p.TaskId.String()
+	return params
 }

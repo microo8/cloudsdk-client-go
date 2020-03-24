@@ -28,7 +28,6 @@ func NewOcrClient(host, applicationID, password string) *OcrClient {
 //TODO CompletableFuture<TaskInfo>
 
 func (c *OcrClient) startTask(
-	method string, //TODO http.Method? ,
 	requestUrl string,
 	params models.Params, //TODO RequestParams<TaskInfo>
 	fileStream io.Reader,
@@ -80,14 +79,16 @@ func tryDeserializeError(responseData []byte) error {
  * @param parameters Image processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
 
-func (c *OcrClient) ProcessImage(parameters models.ImageProcessingParams, fileStream io.Reader, fileName string,
-	waitTaskFinished bool) {
-	return c.startTask(http.MethodPost, Urls.ProcessImage, parameters, fileStream, fileName, waitTaskFinished)
+func (c *OcrClient) ProcessImage(parameters *models.ImageProcessingParams, fileStream io.Reader, fileName string) (*models.TaskInfo, error) {
+	resp := &models.TaskInfo{}
+	if err := c.startTask(ProcessImageURL, parameters, fileStream, fileName, resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 /**
@@ -101,7 +102,7 @@ func (c *OcrClient) ProcessImage(parameters models.ImageProcessingParams, fileSt
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) SubmitImage(parameters models.ImageSubmittingParams, fileStream io.Reader, fileName string) {
+func (c *OcrClient) SubmitImage(parameters *models.ImageSubmittingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -115,11 +116,10 @@ func (c *OcrClient) SubmitImage(parameters models.ImageSubmittingParams, fileStr
  * status can be started using this method.
  *
  * @param parameters Document processing parameters
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessDocument(parameters models.DocumentProcessingParams, waitTaskFinished bool) {
+func (c *OcrClient) ProcessDocument(parameters models.DocumentProcessingParams) {
 }
 
 /**
@@ -128,11 +128,10 @@ func (c *OcrClient) ProcessDocument(parameters models.DocumentProcessingParams, 
  * @param parameters Business card processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessBusinessCard(parameters models.BusinessCardProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessBusinessCard(parameters models.BusinessCardProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -146,11 +145,10 @@ func (c *OcrClient) ProcessBusinessCard(parameters models.BusinessCardProcessing
  * @param parameters Text field processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessTextField(parameters models.TextFieldProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessTextField(parameters models.TextFieldProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -166,11 +164,10 @@ func (c *OcrClient) ProcessTextField(parameters models.TextFieldProcessingParams
  * @param parameters Barcode field processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessBarcodeField(parameters models.BarcodeFieldProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessBarcodeField(parameters models.BarcodeFieldProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -183,11 +180,10 @@ func (c *OcrClient) ProcessBarcodeField(parameters models.BarcodeFieldProcessing
  * @param parameters Checkmark field processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessCheckmarkField(parameters models.CheckmarkFieldProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessCheckmarkField(parameters models.CheckmarkFieldProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -207,11 +203,10 @@ func (c *OcrClient) ProcessCheckmarkField(parameters models.CheckmarkFieldProces
  * @param parameters Fields processing parameters
  * @param fileStream XML File describing fields recognition settings
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessFields(parameters models.FieldsProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessFields(parameters models.FieldsProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -227,11 +222,10 @@ func (c *OcrClient) ProcessFields(parameters models.FieldsProcessingParams, file
  * @param parameters Mrz processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessMrz(parameters models.MrzProcessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessMrz(parameters models.MrzProcessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
@@ -248,11 +242,10 @@ func (c *OcrClient) ProcessMrz(parameters models.MrzProcessingParams, fileStream
  * @param parameters Receipt processing parameters
  * @param fileStream Stream of the file with the image to recognize
  * @param fileName Name of the file with the image
- * @param waitTaskFinished Indicates whether to wait until task is finished.
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) ProcessReceipt(parameters models.ReceiptProccessingParams, fileStream io.Reader, fileName string, waitTaskFinished bool) {
+func (c *OcrClient) ProcessReceipt(parameters models.ReceiptProccessingParams, fileStream io.Reader, fileName string) {
 }
 
 /**
