@@ -458,3 +458,10 @@ const (
 	FieldRegionExportModeForOriginalImage  FieldRegionExportMode = "forOriginalImage"
 	FieldRegionExportModeForCorrectedImage FieldRegionExportMode = "forCorrectedImage"
 )
+
+//The type of the application
+type ApplicationType string
+
+const (
+	ApplicationTypeNormal ApplicationType = "normal"
+)

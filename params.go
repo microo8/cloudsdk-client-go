@@ -53,6 +53,27 @@ type TaskInfo struct {
 	Description string
 }
 
+//Describes the Application
+type Application struct {
+	//Application Id
+	ID string
+
+	//Displayed name of the application
+	DisplayName string
+
+	//The number of pages remained for processing
+	Pages int
+
+	//The number of fields remained for processing
+	Fields int
+
+	//Pages expiration date
+	Expires time.Time
+
+	//Application type
+	Type ApplicationType
+}
+
 type Task struct {
 	/*
 		Task identifier

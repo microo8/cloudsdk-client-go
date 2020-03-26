@@ -23,11 +23,13 @@ func (client *httpClient) SendRequest(method, requestUrl string, params Params, 
 		return nil, fmt.Errorf("making request: %w", err)
 	}
 	req.SetBasicAuth(client.ApplicationID, client.Password)
-	query := req.URL.Query()
-	for k, v := range params.Params() {
-		query.Add(k, v)
+	if params != nil {
+		query := req.URL.Query()
+		for k, v := range params.Params() {
+			query.Add(k, v)
+		}
+		req.URL.RawQuery = query.Encode()
 	}
-	req.URL.RawQuery = query.Encode()
 	return client.client.Do(req)
 }
 
@@ -347,7 +349,15 @@ func (c *OcrClient) DeleteTask(taskId string) (*TaskInfo, error) {
 //Note: The tasks are ordered by the date of the last action with the task. This method can list up to 1000 tasks. If you process
 //a large number of tasks, call this method for shorter time periods.
 //parameters Parameters for listing tasks
-func (c *OcrClient) ListTasks(parameters *TasksListingParams) {}
+func (c *OcrClient) ListTasks(parameters *TasksListingParams) ([]*TaskInfo, error) {
+	var resp struct {
+		Tasks []*TaskInfo
+	}
+	if err := c.startTask(http.MethodGet, ListTasksURL, parameters, nil, "", &resp); err != nil {
+		return nil, err
+	}
+	return resp.Tasks, nil
+}
 
 //ListFinishedTask returns the list of finished tasks. A task is finished if it has one of the following statuses:
 //TaskStatusCompleted, TaskStatusProcessingFailed},
@@ -359,7 +369,15 @@ func (c *OcrClient) ListTasks(parameters *TasksListingParams) {}
 //method if your application does not have any incomplete tasks sent for the processing.
 //Please note that the task status is not changed momentarily. Do not call this method more frequently than once in 2 or
 //seconds.
-func (c *OcrClient) ListFinishedTask() {}
+func (c *OcrClient) ListFinishedTask() ([]*TaskInfo, error) {
+	var resp struct {
+		Tasks []*TaskInfo
+	}
+	if err := c.startTask(http.MethodGet, ListFinishedTasksURL, nil, nil, "", &resp); err != nil {
+		return nil, err
+	}
+	return resp.Tasks, nil
+}
 
 //GetApplicationInfo allows you to receive information about the application type, its current balance and expiration date. You may
 //find it helpful for keeping the usage records.
@@ -369,4 +387,10 @@ func (c *OcrClient) ListFinishedTask() {}
 //1) go to https://cloud.ocrsdk.com and log in
 //2) click Settings under your application's name
 //3) on the next screen, click enable:
-func (c *OcrClient) GetApplicationInfo() {}
+func (c *OcrClient) GetApplicationInfo() (*Application, error) {
+	resp := &Application{}
+	if err := c.startTask(http.MethodGet, GetApplicationInfoURL, nil, nil, "", resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

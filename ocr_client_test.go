@@ -360,207 +360,249 @@ func TestProcessReceipt(t *testing.T) {
 	checkResultTask(processReceiptTask, "", 1, TaskStatusCompleted)
 }
 
-/*
-
-
-   func TestGetTaskStatus(t *testing.T) {
+func TestGetTaskStatus(t *testing.T) {
 	t.Parallel()
-       TaskInfo submitImageTask = submitImage(.IMAGE);
-       TaskInfo resultTask = c.getTaskStatus(submitImageTask.getTaskId()).get();
+	submitImageTask, err := submitImage(IMAGE, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resultTask, err := c.GetTaskStatus(submitImageTask.TaskId)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-       Assert.assertNotNull(resultTask);
-       Assert.assertEquals(submitImageTask.getTaskId(), resultTask.getTaskId());
-       Assert.assertEquals(TaskStatus.Submitted, resultTask.getStatus());
-   }
+	if resultTask == nil {
+		t.Fatal("resultTask is nil")
+	}
+	if submitImageTask.TaskId != resultTask.TaskId {
+		t.Fatal("resultTask.TaskId not equal")
+	}
+	if TaskStatusSubmitted != resultTask.Status {
+		t.Fatal("wrong status")
+	}
+}
 
-
-   func TestDeleteTask(t *testing.T) {
+func TestDeleteTask(t *testing.T) {
 	t.Parallel()
-       TaskInfo submitImageTask = submitImage(.IMAGE);
-       TaskInfo deletedTask = c.deleteTask(submitImageTask.getTaskId()).get();
-       TaskInfo resultTask = c.getTaskStatus(deletedTask.getTaskId()).get();
+	submitImageTask, err := submitImage(IMAGE, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	deletedTask, err := c.DeleteTask(submitImageTask.TaskId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resultTask, err := c.GetTaskStatus(deletedTask.TaskId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deletedTask == nil {
+		t.Fatal("deletedTask is nil")
+	}
+	if resultTask == nil {
+		t.Fatal("resultTask is nil")
+	}
 
-       Assert.assertNotNull(deletedTask);
-       Assert.assertNotNull(resultTask);
+	if submitImageTask.TaskId != deletedTask.TaskId {
+		t.Fatal("ids not equal")
+	}
+	if deletedTask.TaskId != resultTask.TaskId {
+		t.Fatal("ids not equal")
+	}
 
-       Assert.assertEquals(submitImageTask.getTaskId(), deletedTask.getTaskId());
-       Assert.assertEquals(deletedTask.getTaskId(), resultTask.getTaskId());
+	if TaskStatusSubmitted != submitImageTask.Status {
+		t.Fatal("status not submitted")
+	}
+	if TaskStatusDeleted != deletedTask.Status {
+		t.Fatal("status not deleted")
+	}
+	if TaskStatusDeleted != resultTask.Status {
+		t.Fatal("status not deleted")
+	}
+}
 
-       Assert.assertEquals(TaskStatus.Submitted, submitImageTask.getStatus());
-       Assert.assertEquals(TaskStatus.Deleted, deletedTask.getStatus());
-       Assert.assertEquals(TaskStatus.Deleted, resultTask.getStatus());
-   }
-
-
-   func TestListTasks(t *testing.T) {
+func TestListTasks(t *testing.T) {
 	t.Parallel()
-       TaskInfo submitImageTask = submitImage(.IMAGE);
+	submitImageTask, err := submitImage(IMAGE, "")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-       TasksListingParams tasksListingParams = new TasksListingParams();
-       tasksListingParams.setExcludeDeleted(true);
+	b := true
+	tasksListingParams := &TasksListingParams{
+		ExcludeDeleted: &b,
+	}
 
-       TaskList taskList = c.listTasks(tasksListingParams).get();
+	taskList, err := c.ListTasks(tasksListingParams)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if taskList == nil {
+		t.Fatal("taskList is nil")
+	}
+	if len(taskList) == 0 {
+		t.Fatal("taskList is empty")
+	}
+	if !idIn(submitImageTask.TaskId, taskList) {
+		t.Fatal("submitImageTask.TaskId not in taskList")
+	}
+}
 
-       Assert.assertNotNull(taskList);
-       Assert.assertTrue(taskList.getTasks().size() > 0);
-       Assert.assertTrue(taskList.getTasks().stream()
-               .anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
+func idIn(id string, taskList []*TaskInfo) bool {
+	for _, task := range taskList {
+		if task.TaskId == id {
+			return true
+		}
+	}
+	return false
+}
 
-
-   }
-
-
-   func TestListFinishedTasks(t *testing.T) {
+func TestListFinishedTasks(t *testing.T) {
 	t.Parallel()
-       FileInputStream fileStream = new FileInputStream(.IMAGE);
+	fileStream, err := os.Open(IMAGE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fileStream.Close()
 
-       TaskInfo submitImageTask = submitImage(.IMAGE);
+	submitImageTask, err := submitImage(IMAGE, "")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-       TaskInfo processImageTask = c.processImage(
-               new ImageProcessingParams(),
-               fileStream,
-               .IMAGE,
-               true
-       ).get();
+	processImageTask, err := c.ProcessImage(
+		&ImageProcessingParams{},
+		fileStream,
+		IMAGE,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	processImageTask, err = c.WaitForTask(processImageTask)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-       TaskList listFinishedTasks = c.listFinishedTask().get();
+	listFinishedTasks, err := c.ListFinishedTask()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if listFinishedTasks == nil {
+		t.Fatal("listFinishedTasks is nil")
+	}
+	if len(listFinishedTasks) == 0 {
+		t.Fatal("listFinishedTasks len is 0")
+	}
+	if len(listFinishedTasks) > 100 {
+		t.Fatal("listFinishedTasks len more than 100")
+	}
 
-       Assert.assertNotNull(listFinishedTasks);
+	if idIn(submitImageTask.TaskId, listFinishedTasks) {
+		t.Fatal("submitImageTask.TaskId in listFinishedTasks")
+	}
+	if !idIn(processImageTask.TaskId, listFinishedTasks) {
+		t.Fatal("processImageTask.TaskId not in listFinishedTasks")
+	}
 
-       Assert.assertTrue(listFinishedTasks.getTasks().size() > 0);
-       Assert.assertTrue(listFinishedTasks.getTasks().size() <= 100);
+	b := true
+	tasksListingParams := &TasksListingParams{
+		ExcludeDeleted: &b,
+	}
 
-       Assert.assertFalse(listFinishedTasks.getTasks().stream().anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
-       Assert.assertTrue(listFinishedTasks.getTasks().stream().anyMatch(task -> task.getTaskId().equals(processImageTask.getTaskId())));
+	taskList, err := c.ListTasks(tasksListingParams)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if taskList == nil {
+		t.Fatal("taskList is nil")
+	}
+	if len(taskList) == 0 {
+		t.Fatal("taskList is empty")
+	}
+	if !idIn(submitImageTask.TaskId, taskList) {
+		t.Fatal("submitImageTask.TaskId not in taskList")
+	}
 
-       TasksListingParams tasksListingParams = new TasksListingParams();
-       tasksListingParams.setExcludeDeleted(true);
+}
 
-       TaskList taskList = c.listTasks(tasksListingParams).get();
-
-       Assert.assertNotNull(taskList);
-       Assert.assertTrue(taskList.getTasks().size() > 0);
-       Assert.assertTrue(taskList.getTasks().stream()
-               .anyMatch(task -> task.getTaskId().equals(submitImageTask.getTaskId())));
-
-   }
-
-
-   func TestGetApplicationInfo(t *testing.T) {
+func TestGetApplicationInfo(t *testing.T) {
 	t.Parallel()
-       Application application = c.getApplicationInfo().get();
+	application, err := c.GetApplicationInfo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if application == nil {
+		t.Fatal("application is nil")
+	}
+	if application.ID != appID {
+		t.Fatalf("application ID not equal: %s - %s", application.ID, appID)
+	}
+}
 
-       Assert.assertNotNull(application);
-       Assert.assertEquals(testConfig.getApplicationId(), application.getId());
-   }
-
-
-   func TestInvalidTaskId(t *testing.T) {
+func TestInvalidTaskId(t *testing.T) {
 	t.Parallel()
-       // Due to Java async-call mechanism, any exception, thrown during asynchronous method is wrapped with ExecutionException
-       // So, to obtain original exception, one has to get cause of ExecutionException instance
-       try {
-           try {
-               UUID invalidTaskId = UUID.randomUUID();
-               c.getTaskStatus(invalidTaskId).get();
+	invalidTaskId := "163024a1-eee6-42ea-a577-a4b936dcb250"
+	if _, err := c.GetTaskStatus(invalidTaskId); err == nil {
+		t.Fatal("ApiError expected")
+	}
+}
 
-               Assert.fail("ApiException expected");
-           } catch (ExecutionException e) {
-               throw e.getCause();
-           }
-       } catch (ApiException e) {
-           ShouldHelper.checkException(e, ErrorCode.InvalidArgument, ValidationErrorCode.InvalidParameterValue, ErrorTarget.TaskId);
-       }
-   }
-
-
-   func TestNullTaskId(t *testing.T) {
+func TestNullTaskId(t *testing.T) {
 	t.Parallel()
-       try {
-           try {
-               c.getTaskStatus(null).get();
+	if _, err := c.GetTaskStatus(""); err == nil {
+		t.Fatal("ApiError expected")
+	}
+}
 
-               Assert.fail("ApiException expected");
-           } catch (ExecutionException e) {
-               throw e.getCause();
-           }
-       } catch (ApiException e) {
-           ShouldHelper.checkException(e, ErrorCode.InvalidArgument, ValidationErrorCode.MissingArgument, ErrorTarget.TaskId);
-       }
-   }
-
-
-   func TestInvalidRegion(t *testing.T) {
+func TestInvalidRegion(t *testing.T) {
 	t.Parallel()
-       try {
-           try {
-               FileInputStream fileStream = new FileInputStream(.FIELDS);
+	fileStream, err := os.Open(FIELDS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fileStream.Close()
 
-               BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
-               barcodeFieldProcessingParams.setRegion("some_invalid_region");
+	barcodeFieldProcessingParams := &BarcodeFieldProcessingParams{
+		Region: "some_invalid_region",
+	}
 
-               c.processBarcodeField(
-                       barcodeFieldProcessingParams,
-                       fileStream,
-                       .FIELDS,
-                       true
-               ).get();
+	if _, err := c.ProcessBarcodeField(
+		barcodeFieldProcessingParams,
+		fileStream,
+		FIELDS,
+	); err == nil {
+		t.Fatal("ApiError expected")
+	}
+}
 
-               Assert.fail("ApiException expected");
-           } catch (ExecutionException e) {
-               throw e.getCause();
-           }
-       } catch (ApiException e) {
-           ShouldHelper.checkException(e, ErrorCode.InvalidArgument, ValidationErrorCode.InvalidParameterValue, ErrorTarget.Region);
-       }
-   }
-
-
-   func TestUnsupportedFormat(t *testing.T) {
+func TestUnsupportedFormat(t *testing.T) {
 	t.Parallel()
-       try {
-           try {
-               FileInputStream fileStream = new FileInputStream(.UNSUPPORTED_FORMAT);
+	fileStream, err := os.Open(UNSUPPORTED_FORMAT)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fileStream.Close()
 
-               BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
+	barcodeFieldProcessingParams := &BarcodeFieldProcessingParams{}
 
-               c.processBarcodeField(
-                       barcodeFieldProcessingParams,
-                       fileStream,
-                       .UNSUPPORTED_FORMAT,
-                       true
-               ).get();
+	if _, err := c.ProcessBarcodeField(
+		barcodeFieldProcessingParams,
+		fileStream,
+		UNSUPPORTED_FORMAT,
+	); err == nil {
+		t.Fatal("ApiError expected")
+	}
+}
 
-               Assert.fail("ApiException expected");
-           } catch (ExecutionException e) {
-               throw e.getCause();
-           }
-       } catch (ApiException e) {
-           ShouldHelper.checkException(e, ErrorCode.FileFormatUnsupported);
-       }
-   }
-
-
-   func TestNoImage(t *testing.T) {
+func TestNoImage(t *testing.T) {
 	t.Parallel()
-       try {
-           try {
-               BarcodeFieldProcessingParams barcodeFieldProcessingParams = new BarcodeFieldProcessingParams();
+	barcodeFieldProcessingParams := &BarcodeFieldProcessingParams{}
 
-               c.processBarcodeField(
-                       barcodeFieldProcessingParams,
-                       null,
-                       null,
-                       true
-               ).get();
-
-               Assert.fail("ApiException expected");
-           } catch (ExecutionException e) {
-               throw e.getCause();
-           }
-       } catch (ApiException e) {
-           ShouldHelper.checkException(e, ErrorCode.InvalidArgument, ValidationErrorCode.MissingArgument, ErrorTarget.File);
-       }
-   }
-
-*/
+	if _, err := c.ProcessBarcodeField(
+		barcodeFieldProcessingParams,
+		nil,
+		"",
+	); err == nil {
+		t.Fatal("ApiError expected")
+	}
+}
