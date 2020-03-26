@@ -1,5 +1,6 @@
 package abbyysdk
 
+//ABBYY Cloud SDK urls
 const (
 	ProcessImageURL          = "v2/processImage"
 	GetTaskStatusURL         = "v2/getTaskStatus"
