@@ -9,23 +9,23 @@ const (
 	/**
 	 * The task has been registered in the system, but has not yet been passed for processing.
 	 */
-	TaskStatusSubmitted TaskStatus = "submitted"
+	TaskStatusSubmitted TaskStatus = "Submitted"
 
 	/**
 	 * The task has been placed in the processing queue and is waiting to be processed.
 	 */
-	TaskStatusQueued TaskStatus = "queued"
+	TaskStatusQueued TaskStatus = "Queued"
 
 	/**
 	 * The task is being processed.
 	 */
-	TaskStatusInProgress TaskStatus = "inProgress"
+	TaskStatusInProgress TaskStatus = "InProgress"
 
 	/**
 	 * The task has been processed successfully. For a task with this status, the URL for
 	 * downloading the result of processing is available in the response.
 	 */
-	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusCompleted TaskStatus = "Completed"
 
 	/**
 	 * The task has not been processed because an error occurred. You can find the description of the
@@ -36,71 +36,71 @@ const (
 	 * failed, the fullest and most specific error description can be received by calling
 	 * {@link IOcrClient#getTaskStatusAsync(UUID)} for the first of those tasks.
 	 */
-	TaskStatusProcessingFailed TaskStatus = "processingFailed"
+	TaskStatusProcessingFailed TaskStatus = "ProcessingFailed"
 
 	/**
 	 * The task has been deleted.
 	 */
-	TaskStatusDeleted TaskStatus = "deleted"
+	TaskStatusDeleted TaskStatus = "Deleted"
 
 	/**
 	 * You do not have enough money on your account to process the task.
 	 */
-	TaskStatusNotEnoughCredits TaskStatus = "notEnoughCredits"
+	TaskStatusNotEnoughCredits TaskStatus = "NotEnoughCredits"
 )
 
 /**
  * Format of exporting recognized text.
  * Several formats may be provided at once
  */
-type ExportFormat int
+type ExportFormat string
 
 const (
 	/**
 	 * TXT
 	 */
-	ExportFormatTxt ExportFormat = iota + 1
+	ExportFormatTxt ExportFormat = "txt"
 
 	/**
 	 * TXT. The exported file contains the text that was saved according to the order of the original blocks.
 	 */
-	ExportFormatTxtUnstructured
+	ExportFormatTxtUnstructured ExportFormat = "txtUnstructured"
 
 	/**
 	 * RTF
 	 */
-	ExportFormatRtf
+	ExportFormatRtf ExportFormat = "rtf"
 
 	/**
 	 * DOCX
 	 */
-	ExportFormatDocx
+	ExportFormatDocx ExportFormat = "docx"
 
 	/**
 	 * XLSX
 	 */
-	ExportFormatXlsx
+	ExportFormatXlsx ExportFormat = "xlsx"
 
 	/**
 	 * PPTX
 	 */
-	ExportFormatPptx
+	ExportFormatPptx ExportFormat = "pptx"
 
 	/**
 	 * PDF. The entire image is saved as a picture, with recognized text put under the image.
 	 */
-	ExportFormatPdfSearchable
+	ExportFormatPdfSearchable ExportFormat = "pdfSearchable"
 
 	/**
 	 * PDF. The recognized text is saved as text, and the pictures are embedded as images.
 	 */
-	ExportFormatPdfTextAndImages
+	ExportFormatPdfTextAndImages ExportFormat = "pdfTextAndImages"
 
 	/**
 	 * PDF/A-1b. The file is saved in PDF/A-1b-compliant format, with the entire image saved
 	 * as a picture and recognized text put under it.
 	 */
-	ExportFormatPdfA
+	ExportFormatPdfA ExportFormat = "pdfA"
 
 	/**
 	 * XML. All coordinates are saved relative to the original image.
@@ -109,7 +109,7 @@ const (
 	 * Output XML Document</a> for the description of tags. If you select this export format, barcodes
 	 * are recognized on the image and saved to output XML no matter which profile is used for recognition.
 	 */
-	ExportFormatXml
+	ExportFormatXml ExportFormat = "xml"
 
 	/**
 	 * XML. All coordinates are saved relative to the image after geometry correction.
@@ -118,12 +118,12 @@ const (
 	 * Output XML Document</a> for the description of tags. If you select this export format, barcodes
 	 * are recognized on the image and saved to output XML no matter which profile is used for recognition.
 	 */
-	ExportFormatXmlForCorrectedImage
+	ExportFormatXmlForCorrectedImage ExportFormat = "xmlForCorrectedImage"
 
 	/**
 	 * ALTO
 	 */
-	ExportFormatAlto
+	ExportFormatAlto ExportFormat = "alto"
 )
 
 /**

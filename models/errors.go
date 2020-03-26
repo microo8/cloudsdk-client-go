@@ -9,6 +9,7 @@ import (
  * Describes the API related error
  */
 type ApiError struct {
+	Message string
 	/**
 	 * HTTP Status code returned by a server
 	 */
@@ -34,11 +35,11 @@ type ApiError struct {
  */
 func NewApiError(message string, statusCode int, error error, headers http.Header) ApiError {
 	//return ApiError{message, statusCode, error, headers, nil}
-	return ApiError{statusCode, error, headers}
+	return ApiError{message, statusCode, error, headers}
 }
 
 func (err ApiError) Error() string {
-	return err.Err.Error()
+	return err.Message + ": " + err.Err.Error()
 }
 
 /**

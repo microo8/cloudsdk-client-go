@@ -4,8 +4,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Params interface {
@@ -27,7 +25,7 @@ type TaskInfo struct {
 	/**
 	 * Task identifier
 	 */
-	TaskId uuid.UUID
+	TaskId string
 
 	/**
 	 * Task creation time
@@ -87,6 +85,19 @@ func (ti TaskInfo) IsInProcess() bool {
 	return false
 }
 
+type Task struct {
+	/**
+	 * Task identifier
+	 */
+	TaskId string
+}
+
+func (p *Task) Params() map[string]string {
+	return map[string]string{
+		"taskId": p.TaskId,
+	}
+}
+
 type ImageProcessingParams struct {
 	TaskInfo
 	/**
@@ -126,12 +137,12 @@ type ImageProcessingParams struct {
 	 *   <li><b>false</b></li> The page orientation detection and correction is not performed.
 	 * </ul>
 	 */
-	CorrectOrientation bool
+	CorrectOrientation *bool
 
 	/**
 	 * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
 	 */
-	CorrectSkew bool
+	CorrectSkew *bool
 
 	/**
 	 * Optional. Default "English". Specifies recognition language of the document.
@@ -154,7 +165,7 @@ type ImageProcessingParams struct {
 	 * should be written to an output file in XML format. This parameter can be used only
 	 * if the {@link ExportFormat} parameter contains xml or xmlForCorrectedImage value.
 	 */
-	WriteRecognitionVariants bool `json:"xml:writeRecognitionVariants"`
+	WriteRecognitionVariants *bool `json:"xml:writeRecognitionVariants"`
 
 	/**
 	 * Optional. Default "false". Specifies whether the paragraph and character styles
@@ -162,14 +173,14 @@ type ImageProcessingParams struct {
 	 * used only if the {@link ExportFormat} parameter contains xml or
 	 * xmlForCorrectedImage value.
 	 */
-	WriteFormatting bool `json:"xml:writeFormatting"`
+	WriteFormatting *bool `json:"xml:writeFormatting"`
 
 	/**
 	 * Optional. Default "true" for xml export format and "false" in other cases.
 	 * Specifies whether barcodes must be detected on the image, recognized and exported
 	 * to the result file.
 	 */
-	ReadBarcodes bool
+	ReadBarcodes *bool
 }
 
 func (p *ImageProcessingParams) Params() map[string]string {
@@ -190,18 +201,28 @@ func (p *ImageProcessingParams) Params() map[string]string {
 	if p.ImageSource != "" {
 		params["imageSource"] = string(p.ImageSource)
 	}
-	params["correctOrientation"] = strconv.FormatBool(p.CorrectOrientation)
-	params["correctSkew"] = strconv.FormatBool(p.CorrectSkew)
-	params["readBarcodes"] = strconv.FormatBool(p.ReadBarcodes)
-	if len(p.ExportFormats) != 0 {
+	if p.CorrectOrientation != nil {
+		params["correctOrientation"] = strconv.FormatBool(*p.CorrectOrientation)
+	}
+	if p.CorrectSkew != nil {
+		params["correctSkew"] = strconv.FormatBool(*p.CorrectSkew)
+	}
+	if len(p.ExportFormats) > 0 {
 		s := make([]string, len(p.ExportFormats))
 		for i, v := range p.ExportFormats {
 			s[i] = string(v)
 		}
 		params["exportFormat"] = strings.Join(s, ",")
 	}
-	params["xml:writeFormatting"] = strconv.FormatBool(p.WriteFormatting)
-	params["xml:writeRecognitionVariants"] = strconv.FormatBool(p.WriteRecognitionVariants)
+	if p.ReadBarcodes != nil {
+		params["readBarcodes"] = strconv.FormatBool(*p.ReadBarcodes)
+	}
+	if p.WriteFormatting != nil {
+		params["xml:writeFormatting"] = strconv.FormatBool(*p.WriteFormatting)
+	}
+	if p.WriteRecognitionVariants != nil {
+		params["xml:writeRecognitionVariants"] = strconv.FormatBool(*p.WriteRecognitionVariants)
+	}
 	if p.WriteTags != "" {
 		params["pdf:writeTags"] = string(p.WriteTags)
 	}
@@ -228,8 +249,8 @@ type ImageSubmittingParams struct {
 
 func (p *ImageSubmittingParams) Params() map[string]string {
 	params := make(map[string]string)
-	if p.TaskId.String() != "00000000-0000-0000-0000-000000000000" {
-		params["taskId"] = p.TaskId.String()
+	if p.TaskId != "" {
+		params["taskId"] = p.TaskId
 	}
 	if p.PdfPassword != "" {
 		params["pdfPassword"] = p.PdfPassword
@@ -247,7 +268,7 @@ type DocumentProcessingParams struct {
 	 * specified identifier does not exist or has been deleted, an error is
 	 * returned.
 	 */
-	TaskId uuid.UUID
+	TaskId string
 
 	/**
 	 * Optional. Contains the description of the processing task. Cannot
@@ -291,12 +312,12 @@ type DocumentProcessingParams struct {
 	 *   <li><b>false</b></li> The page orientation detection and correction is not performed.
 	 * </ul>
 	 */
-	CorrectOrientation bool
+	CorrectOrientation *bool
 
 	/**
 	 * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
 	 */
-	CorrectSkew bool
+	CorrectSkew *bool
 
 	/**
 	 * Optional. Default is {@link WriteTags#Auto}. Specifies whether the result must be written as tagged PDF.
@@ -310,7 +331,7 @@ type DocumentProcessingParams struct {
 	 * should be written to an output file in XML format. This parameter can be used only
 	 * if the {@link ExportFormat} parameter contains xml or xmlForCorrectedImage value.
 	 */
-	WriteRecognitionVariants bool `json:"xml:writeRecognitionVariants"`
+	WriteRecognitionVariants *bool `json:"xml:writeRecognitionVariants"`
 
 	/**
 	 * Optional. Default "false". Specifies whether the paragraph and character styles
@@ -318,19 +339,19 @@ type DocumentProcessingParams struct {
 	 * used only if the {@link ExportFormat} parameter contains xml or
 	 * xmlForCorrectedImage value.
 	 */
-	WriteFormatting bool `json:"xml:writeFormatting"`
+	WriteFormatting *bool `json:"xml:writeFormatting"`
 
 	/**
 	 * Optional. Default "true" for xml export format and "false" in other cases.
 	 * Specifies whether barcodes must be detected on the image, recognized and exported
 	 * to the result file.
 	 */
-	ReadBarcodes bool
+	ReadBarcodes *bool
 }
 
 func (p *DocumentProcessingParams) Params() map[string]string {
 	params := make(map[string]string)
-	params["taskId"] = p.TaskId.String()
+	params["taskId"] = p.TaskId
 	if p.Language != "" {
 		params["language"] = p.Language
 	}
@@ -347,9 +368,15 @@ func (p *DocumentProcessingParams) Params() map[string]string {
 	if p.ImageSource != "" {
 		params["imageSource"] = string(p.ImageSource)
 	}
-	params["correctOrientation"] = strconv.FormatBool(p.CorrectOrientation)
-	params["correctSkew"] = strconv.FormatBool(p.CorrectSkew)
-	params["readBarcodes"] = strconv.FormatBool(p.ReadBarcodes)
+	if p.CorrectOrientation != nil {
+		params["correctOrientation"] = strconv.FormatBool(*p.CorrectOrientation)
+	}
+	if p.CorrectSkew != nil {
+		params["correctSkew"] = strconv.FormatBool(*p.CorrectSkew)
+	}
+	if p.ReadBarcodes != nil {
+		params["readBarcodes"] = strconv.FormatBool(*p.ReadBarcodes)
+	}
 	if len(p.ExportFormats) != 0 {
 		s := make([]string, len(p.ExportFormats))
 		for i, v := range p.ExportFormats {
@@ -357,8 +384,12 @@ func (p *DocumentProcessingParams) Params() map[string]string {
 		}
 		params["exportFormat"] = strings.Join(s, ",")
 	}
-	params["xml:writeFormatting"] = strconv.FormatBool(p.WriteFormatting)
-	params["xml:writeRecognitionVariants"] = strconv.FormatBool(p.WriteRecognitionVariants)
+	if p.WriteFormatting != nil {
+		params["xml:writeFormatting"] = strconv.FormatBool(*p.WriteFormatting)
+	}
+	if p.WriteRecognitionVariants != nil {
+		params["xml:writeRecognitionVariants"] = strconv.FormatBool(*p.WriteRecognitionVariants)
+	}
 	if p.WriteTags != "" {
 		params["pdf:writeTags"] = string(p.WriteTags)
 	}
@@ -409,12 +440,12 @@ type BusinessCardProcessingParams struct {
 	 *   <li><b>false</b></li> The page orientation detection and correction is not performed.
 	 * </ul>
 	 */
-	CorrectOrientation bool
+	CorrectOrientation *bool
 
 	/**
 	 * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
 	 */
-	CorrectSkew bool
+	CorrectSkew *bool
 
 	/**
 	 * Optional. Default "false". Specifies whether the additional information
@@ -423,7 +454,7 @@ type BusinessCardProcessingParams struct {
 	 * parameter can be used only if the {@link #exportFormats} parameter
 	 * is set to {@link ExportFormat#Xml}.
 	 */
-	WriteExtendedCharacterInfo bool `json:"xml:writeExtendedCharacterInfo"`
+	WriteExtendedCharacterInfo *bool `json:"xml:writeExtendedCharacterInfo"`
 
 	/**
 	 * Optional. Default "false". Specifies whether the field components should
@@ -432,7 +463,7 @@ type BusinessCardProcessingParams struct {
 	 * parameter can be used only if the {@link #exportFormats} parameter
 	 * is set to {@link ExportFormat#Xml}.
 	 */
-	WriteFieldComponents bool `json:"xml:writeFieldComponents"`
+	WriteFieldComponents *bool `json:"xml:writeFieldComponents"`
 }
 
 func (p *BusinessCardProcessingParams) Params() map[string]string {
@@ -443,13 +474,21 @@ func (p *BusinessCardProcessingParams) Params() map[string]string {
 	if p.ImageSource != "" {
 		params["imageSource"] = string(p.ImageSource)
 	}
-	params["correctOrientation"] = strconv.FormatBool(p.CorrectOrientation)
-	params["correctSkew"] = strconv.FormatBool(p.CorrectSkew)
+	if p.CorrectOrientation != nil {
+		params["correctOrientation"] = strconv.FormatBool(*p.CorrectOrientation)
+	}
+	if p.CorrectSkew != nil {
+		params["correctSkew"] = strconv.FormatBool(*p.CorrectSkew)
+	}
 	if p.ExportFormat != "" {
 		params["exportFormat"] = string(p.ExportFormat)
 	}
-	params["xml:writeExtendedCharacterInfo"] = strconv.FormatBool(p.WriteExtendedCharacterInfo)
-	params["xml:writeFieldComponents"] = strconv.FormatBool(p.WriteFieldComponents)
+	if p.WriteExtendedCharacterInfo != nil {
+		params["xml:writeExtendedCharacterInfo"] = strconv.FormatBool(*p.WriteExtendedCharacterInfo)
+	}
+	if p.WriteFieldComponents != nil {
+		params["xml:writeFieldComponents"] = strconv.FormatBool(*p.WriteFieldComponents)
+	}
 	if p.Description != "" {
 		params["description"] = p.Description
 	}
@@ -522,14 +561,14 @@ type TextFieldProcessingParams struct {
 	 * Optional. Default "false". Specifies whether the field contains only one text line.
 	 * The value should be true, if there is one text line in the field otherwise it should be false.
 	 */
-	OneTextLine bool
+	OneTextLine *bool
 
 	/**
 	 * Optional. Default "false". Specifies whether the field contains only one word in each text line.
 	 * The value should be true, if no text line contains more than one word (so the lines of text will be recognized
 	 * as a single word) otherwise it should be false.
 	 */
-	OneWordPerTextLine bool
+	OneWordPerTextLine *bool
 
 	/**
 	 * Optional. Default is {@link MarkingType#SimpleText}. This property is valid only
@@ -572,8 +611,12 @@ func (p *TextFieldProcessingParams) Params() map[string]string {
 		}
 		params["textType"] = strings.Join(s, ",")
 	}
-	params["oneTextLine"] = strconv.FormatBool(p.OneTextLine)
-	params["oneWordPerTextLine"] = strconv.FormatBool(p.OneWordPerTextLine)
+	if p.OneTextLine != nil {
+		params["oneTextLine"] = strconv.FormatBool(*p.OneTextLine)
+	}
+	if p.OneWordPerTextLine != nil {
+		params["oneWordPerTextLine"] = strconv.FormatBool(*p.OneWordPerTextLine)
+	}
 	if p.MarkingType != "" {
 		params["markingType"] = string(p.MarkingType)
 	}
@@ -626,7 +669,7 @@ type BarcodeFieldProcessingParams struct {
 	 * If this parameter is set to true, the binary data encoded in a barcode are saved as a sequence of hexadecimal
 	 * values for corresponding bytes.
 	 */
-	ContainsBinaryData bool
+	ContainsBinaryData *bool
 }
 
 func (p *BarcodeFieldProcessingParams) Params() map[string]string {
@@ -641,7 +684,9 @@ func (p *BarcodeFieldProcessingParams) Params() map[string]string {
 		}
 		params["barcodeType"] = strings.Join(s, ",")
 	}
-	params["containsBinaryData"] = strconv.FormatBool(p.ContainsBinaryData)
+	if p.ContainsBinaryData != nil {
+		params["containsBinaryData"] = strconv.FormatBool(*p.ContainsBinaryData)
+	}
 	if p.Description != "" {
 		params["description"] = p.Description
 	}
@@ -681,7 +726,7 @@ type CheckmarkFieldProcessingParams struct {
 	/**
 	 * Optional. Default "false". This property set to true means that checkmark block can be selected and then corrected.
 	 */
-	CorrectionAllowed bool
+	CorrectionAllowed *bool
 }
 
 func (p *CheckmarkFieldProcessingParams) Params() map[string]string {
@@ -692,7 +737,9 @@ func (p *CheckmarkFieldProcessingParams) Params() map[string]string {
 	if p.CheckmarkType != "" {
 		params["checkmarkType"] = string(p.CheckmarkType)
 	}
-	params["correctionAllowed"] = strconv.FormatBool(p.CorrectionAllowed)
+	if p.CorrectionAllowed != nil {
+		params["correctionAllowed"] = strconv.FormatBool(*p.CorrectionAllowed)
+	}
 	if p.Description != "" {
 		params["description"] = p.Description
 	}
@@ -711,7 +758,7 @@ type FieldsProcessingParams struct {
 	 * Required. Specifies the identifier of the task. If the task with the specified identifier does not exist or
 	 * has been deleted, an error is returned.
 	 */
-	TaskId uuid.UUID
+	TaskId string
 
 	/**
 	 * Optional. Contains the description of the processing task. Cannot contain more than 255 characters.
@@ -722,13 +769,15 @@ type FieldsProcessingParams struct {
 	 * Optional. Default "false". Specifies whether the recognition variants should be written to the result.
 	 * If you set this value to true, additional recognition variants (charRecVariants) appear in the XML result file.
 	 */
-	WriteRecognitionVariants bool
+	WriteRecognitionVariants *bool
 }
 
 func (p *FieldsProcessingParams) Params() map[string]string {
 	params := make(map[string]string)
-	params["taskId"] = p.TaskId.String()
-	params["writeRecognitionVariants"] = strconv.FormatBool(p.WriteRecognitionVariants)
+	params["taskId"] = p.TaskId
+	if p.WriteRecognitionVariants != nil {
+		params["writeRecognitionVariants"] = strconv.FormatBool(*p.WriteRecognitionVariants)
+	}
 	if p.Description != "" {
 		params["description"] = p.Description
 	}
@@ -782,12 +831,12 @@ type ReceiptProccessingParams struct {
 	 *   <li><b>false</b></li> The page orientation detection and correction is not performed.
 	 * </ul>
 	 */
-	CorrectOrientation bool
+	CorrectOrientation *bool
 
 	/**
 	 * Optional. Default "true". Specifies whether the skew of the image should be automatically detected and corrected.
 	 */
-	CorrectSkew bool
+	CorrectSkew *bool
 
 	/**
 	 * Optional. Default is {@link ReceiptRecognizingCountry#Usa}.
@@ -801,7 +850,7 @@ type ReceiptProccessingParams struct {
 	 * Optional. Default "false". Specifies whether the additional information on the recognized characters
 	 * (e.g. whether the character is recognized uncertainly) should be written to an output file in XML format.
 	 */
-	WriteExtendedCharacterInfo bool `json:"xml:writeExtendedCharacterInfo"`
+	WriteExtendedCharacterInfo *bool `json:"xml:writeExtendedCharacterInfo"`
 
 	/**
 	 * Optional. Default is {@link FieldRegionExportMode#DoNotExport}. Specifies if the coordinates of field regions
@@ -823,9 +872,15 @@ func (p *ReceiptProccessingParams) Params() map[string]string {
 	if p.ImageSource != "" {
 		params["imageSource"] = string(p.ImageSource)
 	}
-	params["correctOrientation"] = strconv.FormatBool(p.CorrectOrientation)
-	params["correctSkew"] = strconv.FormatBool(p.CorrectSkew)
-	params["xml:writeExtendedCharacterInfo"] = strconv.FormatBool(p.WriteExtendedCharacterInfo)
+	if p.CorrectOrientation != nil {
+		params["correctOrientation"] = strconv.FormatBool(*p.CorrectOrientation)
+	}
+	if p.CorrectSkew != nil {
+		params["correctSkew"] = strconv.FormatBool(*p.CorrectSkew)
+	}
+	if p.WriteExtendedCharacterInfo != nil {
+		params["xml:writeExtendedCharacterInfo"] = strconv.FormatBool(*p.WriteExtendedCharacterInfo)
+	}
 	if p.FieldRegionExportMode != "" {
 		params["xml:fieldRegionExportMode"] = string(p.FieldRegionExportMode)
 	}
@@ -856,7 +911,7 @@ type TasksListingParams struct {
 	/**
 	 * Optional. Default is "false". Specifies if the tasks that have already been deleted must be excluded from the listing.
 	 */
-	ExcludeDeleted bool
+	ExcludeDeleted *bool
 }
 
 func (p *TasksListingParams) Params() map[string]string {
@@ -870,7 +925,9 @@ func (p *TasksListingParams) Params() map[string]string {
 		//yyyy-mm-ddThh:mm:ssZ
 		params["toDate"] = p.ToDate.Format("2006-01-02T15:04:05-07")
 	}
-	params["excludeDeleted"] = strconv.FormatBool(p.ExcludeDeleted)
+	if p.ExcludeDeleted != nil {
+		params["excludeDeleted"] = strconv.FormatBool(*p.ExcludeDeleted)
+	}
 	return params
 }
 
@@ -881,11 +938,11 @@ type TaskDeletionParams struct {
 	/**
 	 * Required. Specifies the identifier of the task. If the task with the specified identifier does not exist, an error is returned.
 	 */
-	TaskId uuid.UUID
+	TaskId string
 }
 
 func (p *TaskDeletionParams) Params() map[string]string {
 	params := make(map[string]string)
-	params["taskId"] = p.TaskId.String()
+	params["taskId"] = p.TaskId
 	return params
 }

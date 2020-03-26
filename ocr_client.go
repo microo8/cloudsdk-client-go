@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"net/http/httputil"
+	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/microo8/cloudsdk-client-go/models"
 )
 
@@ -18,6 +20,7 @@ type OcrClient struct {
 func NewOcrClient(host, applicationID, password string) *OcrClient {
 	return &OcrClient{
 		client: &HTTPClient{
+			client:        &http.Client{},
 			Host:          host,
 			ApplicationID: applicationID,
 			Password:      password,
@@ -25,19 +28,20 @@ func NewOcrClient(host, applicationID, password string) *OcrClient {
 	}
 }
 
-//TODO CompletableFuture<TaskInfo>
-
 func (c *OcrClient) startTask(
+	httpMethod string,
 	requestUrl string,
-	params models.Params, //TODO RequestParams<TaskInfo>
+	params models.Params,
 	fileStream io.Reader,
 	fileName string,
 	response interface{},
 ) error {
-	resp, err := c.client.SendRequest(requestUrl, params, fileStream, fileName)
+	resp, err := c.client.SendRequest(httpMethod, requestUrl, params, fileStream, fileName)
 	if err != nil {
 		return fmt.Errorf("sending request: %w", err)
 	}
+	d, _ := httputil.DumpResponse(resp, true)
+	log.Println(string(d))
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("reading response: %w", err)
@@ -57,6 +61,28 @@ func (c *OcrClient) startTask(
 			resp.Header)
 	}
 	return nil
+}
+
+func (c *OcrClient) WaitForTask(taskInfo *models.TaskInfo) (*models.TaskInfo, error) {
+	ti := taskInfo
+	for {
+		time.Sleep(time.Duration(ti.RequestStatusDelay) * time.Millisecond)
+		ti, err := c.GetTaskStatus(taskInfo.TaskId)
+		if err != nil {
+			return nil, fmt.Errorf("getting task status: %w", err)
+		}
+		switch ti.Status {
+		case models.TaskStatusInProgress, models.TaskStatusQueued, models.TaskStatusSubmitted:
+		case models.TaskStatusDeleted:
+			return nil, fmt.Errorf("task deleted")
+		case models.TaskStatusProcessingFailed:
+			return nil, fmt.Errorf("task processing failed: %w", ti.Error)
+		case models.TaskStatusNotEnoughCredits:
+			return nil, fmt.Errorf("not enough credits: %w", ti.Error)
+		case models.TaskStatusCompleted:
+			return ti, nil
+		}
+	}
 }
 
 func tryDeserializeError(responseData []byte) error {
@@ -85,7 +111,7 @@ func tryDeserializeError(responseData []byte) error {
 
 func (c *OcrClient) ProcessImage(parameters *models.ImageProcessingParams, fileStream io.Reader, fileName string) (*models.TaskInfo, error) {
 	resp := &models.TaskInfo{}
-	if err := c.startTask(ProcessImageURL, parameters, fileStream, fileName, resp); err != nil {
+	if err := c.startTask(http.MethodPost, ProcessImageURL, parameters, fileStream, fileName, resp); err != nil {
 		return nil, err
 	}
 	return resp, nil
@@ -255,7 +281,13 @@ func (c *OcrClient) ProcessReceipt(parameters models.ReceiptProccessingParams, f
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) GetTaskStatus(taskId uuid.UUID) interface{} { return nil }
+func (c *OcrClient) GetTaskStatus(taskId string) (*models.TaskInfo, error) {
+	resp := &models.TaskInfo{}
+	if err := c.startTask(http.MethodGet, GetTaskStatusURL, &models.Task{TaskId: taskId}, nil, "", resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
 
 /**
  * The method deletes the task and the images associated with this task from the ABBYY Cloud OCR SDK storage.
@@ -270,7 +302,13 @@ func (c *OcrClient) GetTaskStatus(taskId uuid.UUID) interface{} { return nil }
  * @return {@link TaskInfo}
  */
 //TODO CompletableFuture<TaskInfo>
-func (c *OcrClient) DeleteTask(taskId uuid.UUID) {}
+func (c *OcrClient) DeleteTask(taskId string) (*models.TaskInfo, error) {
+	resp := &models.TaskInfo{}
+	if err := c.startTask(http.MethodPost, DeleteTaskURL, &models.Task{TaskId: taskId}, nil, "", resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
 
 /**
  * The method returns the list of tasks created by your application. By default, the {@link TaskStatus#Deleted}

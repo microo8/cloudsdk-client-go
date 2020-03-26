@@ -18,11 +18,12 @@ var (
 )
 
 func init() {
-	appID := os.Getenv("APPID")
+	log.SetFlags(log.Lshortfile | log.Ltime)
+	appID = os.Getenv("APPID")
 	if appID == "" {
 		log.Fatalf("must set APPID environment variable")
 	}
-	pass := os.Getenv("PASS")
+	pass = os.Getenv("PASS")
 	if pass == "" {
 		log.Fatalf("must set PASS environment variable")
 	}
@@ -30,6 +31,11 @@ func init() {
 
 func TestProcessImage(t *testing.T) {
 	c := NewOcrClient(HOST, appID, pass)
+	f, err := os.Open("resources/processImage.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
 	taskInfo, err := c.ProcessImage(&models.ImageProcessingParams{
 		ExportFormats: []models.ExportFormat{models.ExportFormatDocx, models.ExportFormatTxt},
 		Language:      "English,French",
@@ -40,19 +46,11 @@ func TestProcessImage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	taskInfo, err = c.WaitForTask(taskInfo)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, resultUrl := range taskInfo.ResultUrls {
 		log.Println(resultUrl)
 	}
-
-	/*
-	   private static CompletableFuture<TaskInfo> processImageAsync() throws FileNotFoundException {
-	       FileInputStream fileStream = new FileInputStream(FILEPATH);
-
-	       ImageProcessingParams imageProcessingParams = new ImageProcessingParams();
-	       imageProcessingParams.setExportFormats(new ExportFormat[]{ExportFormat.Docx, ExportFormat.Txt});
-	       imageProcessingParams.setLanguage("English,French");
-
-	       return ocrClient.processImageAsync(imageProcessingParams, fileStream, FILEPATH, true);
-	*/
 }
