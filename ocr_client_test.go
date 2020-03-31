@@ -1,10 +1,13 @@
 package abbyysdk
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/microo8/cloudsdk-client-go/abbyyxml"
 )
 
 const (
@@ -238,7 +241,17 @@ func TestProcessBarcodeField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	results, err := c.DownloadResults(processBarcodeFieldTask)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range results {
+		var doc abbyyxml.Document
+		if err := xml.NewDecoder(r).Decode(&doc); err != nil {
+			t.Fatal(err)
+		}
+		log.Println(doc)
+	}
 	checkResultTask(processBarcodeFieldTask, "", 1, TaskStatusCompleted)
 }
 

@@ -5,6 +5,14 @@ import (
 	"encoding/xml"
 )
 
+func Parse(data []byte) (*Document, error) {
+	var doc Document
+	if err := xml.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	return &doc, nil
+}
+
 // ParagraphStyles ...
 type ParagraphStyles struct {
 	XMLName        xml.Name              `xml:"paragraphStyles"`
