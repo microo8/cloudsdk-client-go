@@ -3,9 +3,18 @@ package abbyyxml
 
 import (
 	"encoding/xml"
+	"io"
 )
 
-func Parse(data []byte) (*Document, error) {
+func Decode(r io.Reader) (*Document, error) {
+	var doc Document
+	if err := xml.NewDecoder(r).Decode(&doc); err != nil {
+		return nil, err
+	}
+	return &doc, nil
+}
+
+func Unmarshal(data []byte) (*Document, error) {
 	var doc Document
 	if err := xml.Unmarshal(data, &doc); err != nil {
 		return nil, err
