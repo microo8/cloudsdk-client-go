@@ -363,6 +363,7 @@ type FormattingType struct {
 	Base64encodedAttr bool             `xml:"base64encoded,attr,omitempty"`
 	CharParams        *CharParamsType  `xml:"charParams"`
 	WordRecVariants   *WordRecVariants `xml:"wordRecVariants"`
+	Value             string           `xml:",innerxml"`
 }
 
 // VariantText ...
