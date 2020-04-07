@@ -57,7 +57,7 @@ func NewErrorFromText(text string) Error {
 }
 
 func (err Error) Error() string {
-	return fmt.Sprintf("(%s) %s [%s]", err.ErrorData.Code, err.ErrorData.Message, err.ErrorData.Target)
+	return fmt.Sprintf("(%s) %s [%v]", err.ErrorData.Code, err.ErrorData.Message, err.ErrorData.Details)
 }
 
 //ErrorData describes the error details
